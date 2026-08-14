@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open World Prototype — Part 2</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="game-container"></div>
+
+    <div id="ui-overlay">
+        <div id="top-left-hud">
+            <div class="hud-row">
+                <span class="hud-label">HEALTH</span>
+                <div class="bar-bg"><div id="health-bar" class="bar-fill health"></div></div>
+            </div>
+            <div class="hud-row">
+                <span class="hud-label">MONEY</span>
+                <span id="money-value" class="hud-value">$0</span>
+            </div>
+            <div class="hud-row">
+                <span class="hud-label">WANTED</span>
+                <span id="wanted-value" class="hud-value">☆ ☆ ☆ ☆ ☆</span>
+            </div>
+        </div>
+
+        <div id="minimap-container">
+            <canvas id="minimap-canvas" width="180" height="180"></canvas>
+            <div id="clock-hud">08:00 ☀ — CLEAR</div>
+        </div>
+
+        <div id="district-label"></div>
+
+        <div id="mission-panel">
+            <div id="mission-title"></div>
+            <div id="mission-desc"></div>
+            <div id="mission-timer"></div>
+        </div>
+
+        <div id="speed-hud"></div>
+
+        <div id="interact-prompt"></div>
+
+        <div id="controls-hint">
+            <strong>Controls</strong>
+            <div>WASD — Κίνηση / Οδήγηση</div>
+            <div>Shift — Sprint</div>
+            <div>Space — Άλμα (πεζός) / Χειρόφρενο (όχημα)</div>
+            <div>E — Είσοδος/Έξοδος οχήματος</div>
+            <div>V — Αλλαγή καιρού</div>
+            <div>Ποντίκι — Κάμερα</div>
+        </div>
+
+        <div id="pointer-lock-hint">
+            <span>Κάνε κλικ στο παιχνίδι για έλεγχο κάμερας με το ποντίκι</span>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        }
+    }
+    </script>
+    <script>
+        window.addEventListener('error', (e) => {
+            const box = document.getElementById('error-box');
+            if (box) {
+                box.style.display = 'block';
+                box.textContent = 'JS ERROR: ' + (e.message || e.error) + '\n' + (e.filename ? (e.filename + ':' + e.lineno) : '');
+            }
+        });
+        window.addEventListener('unhandledrejection', (e) => {
+            const box = document.getElementById('error-box');
+            if (box) {
+                box.style.display = 'block';
+                box.textContent = 'PROMISE ERROR: ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
+            }
+        });
+    </script>
+    <div id="error-box"></div>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
