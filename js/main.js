@@ -20,6 +20,8 @@ import { WeatherSystem } from './weather.js';
 import { PoliceManager } from './police.js';
 import { MissionSystem } from './missions.js';
 import { AudioSystem } from './audio.js';
+import { SaveSystem } from './save.js';
+import { showMainMenu } from './menu.js';
 
 // --- Scene / camera / renderer ---
 const scene = new THREE.Scene();
@@ -218,12 +220,48 @@ function updateUI(delta) {
     }
 }
 
+// --- Save / Load ---
+let saveIndicatorTimer = 0;
+const saveIndicatorEl = document.createElement('div');
+saveIndicatorEl.id = 'save-indicator';
+saveIndicatorEl.textContent = 'GAME SAVED';
+document.body.appendChild(saveIndicatorEl);
+
+function collectSaveData() {
+    const pos = player.mesh.position;
+    return {
+        x: pos.x,
+        z: pos.z,
+        money: missionSystem.money,
+        wantedLevel: 0, // δεν αποθηκεύουμε ενεργή καταδίωξη — ξεκινάς καθαρός
+        missionIndex: missionSystem.activeIndex,
+    };
+}
+
+function doSave() {
+    SaveSystem.save(collectSaveData());
+    saveIndicatorEl.classList.add('visible');
+    saveIndicatorTimer = 2.5;
+}
+
+function applySaveData(data) {
+    player.mesh.position.set(data.x || 0, 0, data.z || 0);
+    missionSystem.restore(data.money, data.missionIndex);
+}
+
+window.addEventListener('beforeunload', () => {
+    SaveSystem.save(collectSaveData());
+});
+
 // --- Animation loop ---
 const clock = new THREE.Clock();
+let gameStarted = false;
+let autosaveTimer = 0;
 
 function animate() {
     requestAnimationFrame(animate);
     const delta = Math.min(clock.getDelta(), 0.05);
+    if (!gameStarted) { renderer.render(scene, camera); return; }
     elapsedTime += delta;
 
     if (drivingVehicle) {
@@ -255,9 +293,34 @@ function animate() {
     minimap.update(drivingVehicle || player, npcManager.npcs, trafficManager.cars, policeManager.cars, missionSystem.marker ? missionSystem.currentTarget : null);
     updateUI(delta);
 
+    autosaveTimer += delta;
+    if (autosaveTimer > 20) {
+        autosaveTimer = 0;
+        doSave();
+    }
+    if (saveIndicatorTimer > 0) {
+        saveIndicatorTimer -= delta;
+        if (saveIndicatorTimer <= 0) saveIndicatorEl.classList.remove('visible');
+    }
+
     renderer.render(scene, camera);
 }
 animate();
+
+showMainMenu({
+    hasSave: SaveSystem.hasSave(),
+    onPlay: () => {
+        SaveSystem.clear();
+        gameStarted = true;
+        clock.getDelta(); // μηδενισμός ώστε το πρώτο frame να μην έχει τεράστιο delta
+    },
+    onContinue: () => {
+        const data = SaveSystem.load();
+        if (data) applySaveData(data);
+        gameStarted = true;
+        clock.getDelta();
+    },
+});
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
