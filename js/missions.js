@@ -73,6 +73,13 @@ export class MissionSystem {
         }
     }
 
+    // Επαναφέρει χρήματα + δείκτη ενεργής αποστολής από αποθηκευμένο παιχνίδι.
+    restore(money, missionIndex) {
+        this.money = money || 0;
+        this.activeIndex = Math.max(-1, (missionIndex || 0) - 1);
+        this.startNext();
+    }
+
     update(delta, playerPos, vehiclePos) {
         if (this.status !== 'active' || !this.def) return;
         if (this.marker) this.marker.rotation.y += delta * 1.2;
